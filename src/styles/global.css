@@ -1,0 +1,40 @@
+body {
+  font-family: sans-serif;
+  background-color: #000;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+}
+
+.container {
+  text-align: center;
+}
+
+.level-display {
+  margin-bottom: 2rem;
+}
+
+.level-display p {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.level-display span {
+  font-size: 3rem;
+  font-weight: bold;
+}
+
+.resume-button,
+.share-button {
+  background-color: #fff;
+  color: #000;
+  border: none;
+  padding: 1rem 2rem;
+  font-size: 1.2rem;
+  cursor: pointer;
+  margin: 0.5rem;
+  border-radius: 5px;
+}

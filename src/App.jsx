@@ -1,23 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import './App.css';
-import Maze from './components/Maze';
-import './components/Maze.css';
-import { saveState, loadState } from './logic/storage';
+import React, { useEffect } from 'react';
+import Home from './components/Home';
+import Game from './components/Game';
+import useGameState from './logic/useGameState';
 import soundManager from './logic/SoundManager';
 import ambientSound from './assets/sounds/ambient.mp3';
 import moveSound from './assets/sounds/move.mp3';
 import errorSound from './assets/sounds/error.mp3';
 import successSound from './assets/sounds/success.mp3';
 
-
 function App() {
-  const [gameState, setGameState] = useState(loadState() || {
-    level: 1,
-    seed: 'initial-seed',
-    player: { x: 1, y: 1 },
-    maze: null,
-  });
-  const [isPlaying, setIsPlaying] = useState(false);
+  const { gameState, startGame, resumeGame, shareMaze, movePlayer, nextLevel } = useGameState();
 
   useEffect(() => {
     soundManager.loadSound('ambient', ambientSound);
@@ -26,61 +18,55 @@ function App() {
     soundManager.loadSound('success', successSound);
   }, []);
 
-  useEffect(() => {
-    saveState(gameState);
-  }, [gameState]);
-
-  const handleResume = () => {
-    setIsPlaying(true);
+  const handleStart = () => {
+    startGame();
     soundManager.playSound('ambient', true);
   };
 
-  const handleShare = () => {
-    const url = `${window.location.origin}?seed=${gameState.seed}`;
-    navigator.clipboard.writeText(url);
-    alert('Lien du labyrinthe copié dans le presse-papiers !');
+  const handleResume = () => {
+    resumeGame();
+    soundManager.playSound('ambient', true);
   };
 
-  const handlePlayerMove = (player, maze) => {
-    setGameState({ ...gameState, player, maze });
-    soundManager.playSound('move');
-  };
-
-  const handleInvalidMove = () => {
-    soundManager.playSound('error');
+  const handleMove = (dx, dy) => {
+    const moved = movePlayer(dx, dy);
+    if (moved) {
+      soundManager.playSound('move');
+    } else {
+      soundManager.playSound('error');
+    }
   };
 
   const handleWin = () => {
+    soundManager.stopSound('ambient');
     soundManager.playSound('success');
+    setTimeout(() => {
+      nextLevel();
+      soundManager.playSound('ambient', true);
+    }, 2000); // Attendre 2 secondes avant de passer au niveau suivant
   };
 
-  if (isPlaying) {
-    return <Maze
-            width={21}
-            height={21}
-            onPlayerMove={handlePlayerMove}
-            initialState={gameState}
-            onInvalidMove={handleInvalidMove}
-            onWin={handleWin}
-          />;
-  }
-
   return (
-    <div className="container">
-      <div className="level-display">
-        <p>Niveau</p>
-        <span>{gameState.level}</span>
-      </div>
-      <button className="resume-button" onClick={handleResume}>
-        Reprendre
-      </button>
-      <button className="share-button" onClick={handleShare}>
-        Partager ce labyrinthe
-      </button>
+    <>
+      {gameState.screen === 'home' && (
+        <Home
+          level={gameState.level}
+          onStart={handleStart}
+          onResume={handleResume}
+          onShare={shareMaze}
+        />
+      )}
+      {gameState.screen === 'game' && (
+        <Game
+          gameState={gameState}
+          onMove={handleMove}
+          onWin={handleWin}
+        />
+      )}
       <button className="mute-button" onClick={() => soundManager.toggleMute()}>
         Mute
       </button>
-    </div>
+    </>
   );
 }
 

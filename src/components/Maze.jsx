@@ -1,47 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import generateMaze from '../logic/mazeGenerator';
+import './Maze.css';
 
-const Maze = ({ width, height, onPlayerMove, initialState, onInvalidMove, onWin }) => {
-  const [maze, setMaze] = useState(initialState.maze || []);
-  const [player, setPlayer] = useState(initialState.player);
+function Maze({ maze, player, onMove, onWin }) {
   const [touchStart, setTouchStart] = useState(null);
 
   useEffect(() => {
-    if (!initialState.maze) {
-      const newMaze = generateMaze(width, height);
-      setMaze(newMaze);
-      onPlayerMove(player, newMaze);
+    if (player.x === maze[0].length - 1 && player.y === maze.length - 2) {
+      onWin();
     }
-  }, [width, height, initialState.maze]);
-
-  const movePlayer = (dx, dy) => {
-    const newX = player.x + dx;
-    const newY = player.y + dy;
-    if (maze[newY] && maze[newY][newX] === 0) {
-      const newPlayer = { x: newX, y: newY };
-      setPlayer(newPlayer);
-      onPlayerMove(newPlayer, maze);
-      if (newX === width - 1 && newY === height - 2) {
-        onWin();
-      }
-    } else {
-      onInvalidMove();
-    }
-  };
+  }, [player, maze, onWin]);
 
   const handleKeyDown = (e) => {
     switch (e.key) {
       case 'ArrowUp':
-        movePlayer(0, -1);
+        onMove(0, -1);
         break;
       case 'ArrowDown':
-        movePlayer(0, 1);
+        onMove(0, 1);
         break;
       case 'ArrowLeft':
-        movePlayer(-1, 0);
+        onMove(-1, 0);
         break;
       case 'ArrowRight':
-        movePlayer(1, 0);
+        onMove(1, 0);
         break;
       default:
         break;
@@ -63,15 +44,15 @@ const Maze = ({ width, height, onPlayerMove, initialState, onInvalidMove, onWin 
 
     if (Math.abs(dx) > Math.abs(dy)) {
       if (dx > 0) {
-        movePlayer(1, 0);
+        onMove(1, 0);
       } else {
-        movePlayer(-1, 0);
+        onMove(-1, 0);
       }
     } else {
       if (dy > 0) {
-        movePlayer(0, 1);
+        onMove(0, 1);
       } else {
-        movePlayer(0, -1);
+        onMove(0, -1);
       }
     }
 
@@ -83,13 +64,18 @@ const Maze = ({ width, height, onPlayerMove, initialState, onInvalidMove, onWin 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [player, maze]);
+  }, [onMove]);
+
+  if (!maze) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div
       className="maze"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
+      tabIndex="0"
     >
       {maze.map((row, y) => (
         <div key={y} className="maze-row">
@@ -105,6 +91,6 @@ const Maze = ({ width, height, onPlayerMove, initialState, onInvalidMove, onWin 
       ))}
     </div>
   );
-};
+}
 
 export default Maze;
